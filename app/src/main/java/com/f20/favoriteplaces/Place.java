@@ -5,12 +5,14 @@ public class Place {
     private double lng;
     private String addr;
     private String date;
+    private boolean visited;
 
-    public Place(double lat, double lng, String addr, String date) {
+    public Place(double lat, double lng, String addr, String date, boolean visited) {
         this.lat = lat;
         this.lng = lng;
         this.addr = addr;
         this.date = date;
+        this.visited = visited;
     }
 
     public double getLat() {
@@ -43,5 +45,13 @@ public class Place {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public boolean isVisited() {
+        return visited;
+    }
+
+    public void setVisited(boolean visited) {
+        this.visited = visited;
     }
 }
