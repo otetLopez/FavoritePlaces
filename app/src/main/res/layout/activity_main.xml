@@ -18,9 +18,7 @@
         android:textStyle="bold"
         style="@style/TextAppearance.AppCompat.Large"
         android:textColor="#1ABC9C"
-        android:paddingBottom="20dp"
-
-        />
+        android:paddingBottom="20dp" />
 
     <ListView
         android:id="@+id/lv_places"
@@ -34,6 +32,7 @@
         android:orientation="vertical">
 
         <Button
+            android:id="@+id/btn_add_place"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#1ABC9C"
