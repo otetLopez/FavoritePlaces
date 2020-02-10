@@ -80,7 +80,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public boolean onQueryTextSubmit(String s) {
                 Log.i(TAG, "onCreate: " + "This is the nearby type inputted: " + s);
-                showNearby(s);
+                showNearby(s.replace(" ", "_"));
                 return false;
             }
 
