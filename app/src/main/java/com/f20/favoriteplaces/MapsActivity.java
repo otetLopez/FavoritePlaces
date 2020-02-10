@@ -21,6 +21,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -54,9 +55,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     LocationCallback locationCallback;
     LocationRequest locationRequest;
 
+
     double latitude;
     double longitude;
     double dest_lat, dest_lng;
+    public boolean directionRequested;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,11 +67,29 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_maps);
 
         initMap();
+        directionRequested = false;
         getUserLocation();
         if(!checkPermission())
             requestPermission();
         else
             fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
+
+        final SearchView searchView = findViewById(R.id.sv_nearby_key);
+        searchView.clearFocus();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                Log.i(TAG, "onCreate: " + "This is the nearby type inputted: " + s);
+                showNearby(s);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                //Log.i(TAG, "onCreate: onQueryTextChange, " + s);
+                return false;
+            }
+        });
 
 
         Spinner spinner = findViewById(R.id.spinner_map_type);
@@ -193,6 +214,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    private void showNearby(String type) {
+        String url = getUrl(latitude, longitude, type);
+        Object[] dataTransfer = new Object[2];
+        dataTransfer[0] = mMap;
+        dataTransfer[1] = url;
+        GetNearbyPlaceData getNearbyPlaceData = new GetNearbyPlaceData(this);
+        getNearbyPlaceData.execute(dataTransfer);
+        Toast.makeText(this, "Showing nearby " + type, Toast.LENGTH_SHORT).show();
+
+    }
+
 
     private String getAddress(LatLng location) {
         String address = "";
@@ -240,5 +272,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
             }
         }
+    }
+
+    private String getUrl(double latitude, double longitude, String nearbyPlace) {
+        StringBuilder placeUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+        placeUrl.append("location="+latitude+","+longitude);
+        placeUrl.append("&radius="+Constants.RADIUS);
+        placeUrl.append("&type="+nearbyPlace);
+        placeUrl.append("&key="+ getString(R.string.api_key));
+        Log.i(TAG, "getUrl" + placeUrl.toString());
+        return placeUrl.toString();
     }
 }

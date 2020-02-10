@@ -2,6 +2,7 @@
     <string name="app_name">Favorite Places</string>
     <string name="add_a_place">add a place</string>
     <string name="title_activity_maps">Map</string>
+    <string name="api_key">@string/google_maps_key</string>
 
     <string-array name="map_type">
         <item>Default</item>
