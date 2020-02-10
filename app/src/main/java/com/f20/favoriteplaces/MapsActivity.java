@@ -124,6 +124,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     latitude = userLocation.latitude;
                     longitude = userLocation.longitude;
+                    String address = getAddress(userLocation);
 
                     CameraPosition cameraPosition = CameraPosition.builder()
                             .target(userLocation)
@@ -133,8 +134,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             .build();
 
                     mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                    mMap.clear();
                     mMap.addMarker(new MarkerOptions().position(userLocation)
-                            .title("Your Location")
+                            .title(address)
                             .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.user_position)));
                 }
             }
@@ -192,54 +194,40 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    private void getLocation() {
-        // Let us initialize the locationcallback
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                for (Location location: locationResult.getLocations()) {
-                    // Clear the map
-                    mMap.clear();
+    private String getAddress(LatLng location) {
+        String address = "";
+        Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1);
+            if (addresses != null && addresses.size() > 0) {
+                Log.i(TAG,"onLocationResult: " + addresses.get(0));
+                address = "";
+                if(addresses.get(0).getAdminArea() != null)
+                    address += addresses.get(0).getAdminArea() + " ";
+                if(addresses.get(0).getCountryName() != null)
+                    address += addresses.get(0).getCountryName() + " ";
+                if(addresses.get(0).getLocality() != null)
+                    address += addresses.get(0).getLocality() + " ";
+                if(addresses.get(0).getPostalCode() != null)
+                    address += addresses.get(0).getPostalCode() + " ";
+                if(addresses.get(0).getThoroughfare() != null)
+                    address += addresses.get(0).getThoroughfare() + " ";
 
-                    //From the location add the marker
-                    LatLng userLocation = new LatLng(location.getLatitude(),location.getLongitude());
-                    mMap.addMarker(new MarkerOptions().position(userLocation).title("You were here!"));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 10));
-
-                    Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-                    try {
-                        List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-                        if (addresses != null && addresses.size() > 0) {
-                            Log.i(TAG,"onLocationResult: " + addresses.get(0));
-                            String address = "";
-                            if(addresses.get(0).getAdminArea() != null)
-                                address += addresses.get(0).getAdminArea() + " ";
-                            if(addresses.get(0).getCountryName() != null)
-                                address += addresses.get(0).getCountryName() + " ";
-                            if(addresses.get(0).getLocality() != null)
-                                address += addresses.get(0).getLocality() + " ";
-                            if(addresses.get(0).getPostalCode() != null)
-                                address += addresses.get(0).getPostalCode() + " ";
-                            if(addresses.get(0).getThoroughfare() != null)
-                                address += addresses.get(0).getThoroughfare() + " ";
-
-                            Toast.makeText(MapsActivity.this, address, Toast.LENGTH_SHORT).show();
-
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+                Log.i(TAG,"getAddress: " + address);
             }
-        };
+        } catch (IOException e) {
+            e.printStackTrace(); }
+        return address;
     }
+
 
     private void setMarker(Location location) {
         LatLng userLatLng = new LatLng(location.getLatitude(), location.getLongitude());
         MarkerOptions options = new MarkerOptions().position(userLatLng)
                 .title("Your Destination")
-                .snippet("You are going here")
-                .draggable(true);
+                .snippet(getAddress(userLatLng))
+                .draggable(true)
+                .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.destination));
 
         mMap.addMarker(options);
     }
