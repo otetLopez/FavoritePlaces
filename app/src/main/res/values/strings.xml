@@ -6,6 +6,7 @@
     <string-array name="map_type">
         <item>Default</item>
         <item>Satelite</item>
+        <item>Hybrid</item>
         <item>Terrain</item>
     </string-array>
 </resources>
