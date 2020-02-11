@@ -46,7 +46,7 @@ public class PlaceAdapter extends ArrayAdapter {
         if(place.isVisited())
             cell.setBackgroundColor(Color.LTGRAY);
         else
-            cell.setBackgroundColor(Color.WHITE);
+            cell.setBackgroundColor(Color.parseColor("#FAFAFA"));
 
 
 
