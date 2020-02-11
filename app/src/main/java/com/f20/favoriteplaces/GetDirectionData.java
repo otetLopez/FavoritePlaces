@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -20,6 +22,8 @@ import com.google.maps.android.PolyUtil;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 
 import androidx.annotation.DrawableRes;
 import androidx.core.content.ContextCompat;
@@ -28,6 +32,7 @@ public class GetDirectionData extends AsyncTask<Object, String, String> {
 
     String directionData;
     GoogleMap mMap;
+    MarkerOptions markerOptions;
     String url;
 
     String distance;
@@ -70,38 +75,22 @@ public class GetDirectionData extends AsyncTask<Object, String, String> {
 
         Log.i("MapsActivity", "onPostExecute: " + "Done clearing map");
         //Create a new marker with new title and snippet
-        MarkerOptions options = new MarkerOptions()
+        markerOptions = new MarkerOptions()
                 .position(latLng)
                 .draggable(true)
                 .title(this.address)
                 .snippet("Distance: " + distance + ", Duration: " + duration)
                 .icon(bitmapDescriptorFromVector(this.context, R.drawable.destination));
-        mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
-            @Override
-            public void onMarkerDragStart(Marker marker) {
 
-            }
 
-            @Override
-            public void onMarkerDrag(Marker marker) {
-
-            }
-
-            @Override
-            public void onMarkerDragEnd(Marker marker) {
-
-            }
-        });
-        mMap.addMarker(options);
+        mMap.addMarker(markerOptions);
 
         Log.i("MapsActivity", "onPostExecute: " + "Done adding marker");
-        //if (MapsActivity.directionRequested) {
-            String[] directionList;
-            DataParser directionParser = new DataParser();
-            directionList = directionParser.parseDirections(s);
-            displayDirections(directionList);
-       // }
-        //MapsActivity.reSetHomeMarker();
+
+        String[] directionList;
+        DataParser directionParser = new DataParser();
+        directionList = directionParser.parseDirections(s);
+        displayDirections(directionList);
 
     }
 
@@ -125,6 +114,29 @@ public class GetDirectionData extends AsyncTask<Object, String, String> {
         Canvas canvas = new Canvas(bitmap);
         vectorDrawable.draw(canvas);
         return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+
+    private String getAddress(LatLng location) {
+        String address = "";
+        Geocoder geocoder = new Geocoder(this.context, Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1);
+            if (addresses != null && addresses.size() > 0) {
+                address = "";
+                if(addresses.get(0).getThoroughfare() != null)
+                    address += addresses.get(0).getThoroughfare() + " ";
+                if(addresses.get(0).getLocality() != null)
+                    address += addresses.get(0).getLocality() + " ";
+                if(addresses.get(0).getAdminArea() != null)
+                    address += addresses.get(0).getAdminArea() + " ";
+                if(addresses.get(0).getCountryName() != null)
+                    address += addresses.get(0).getCountryName() + " ";
+                if(addresses.get(0).getPostalCode() != null)
+                    address += addresses.get(0).getPostalCode() + " ";
+            }
+        } catch (IOException e) {
+            e.printStackTrace(); }
+        return address;
     }
 
 }

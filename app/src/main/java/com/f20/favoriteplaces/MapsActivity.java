@@ -39,6 +39,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 
@@ -140,9 +141,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setHomeMarker();
     }
 
-    public static void reSetHomeMarker() {
-        //LatLng userLocation = new LatLng(latitude, longitude);
-        //setHomeMarker(userLocation);
+    public  void reSetHomeMarker() {
+        LatLng userLocation = new LatLng(latitude, longitude);
+        setHomeMarker(userLocation);
     }
 
     private void setHomeMarker(LatLng userLocation) {
@@ -220,6 +221,38 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 dest_lat = latLng.latitude;
                 dest_lng = latLng.longitude;
 
+                mMap.clear();
+                reSetHomeMarker();
+                setMarker(location);
+            }
+        });
+
+        mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+            @Override
+            public void onMarkerDragStart(Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDrag(Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDragEnd(Marker marker) {
+
+                LatLng latLng = marker.getPosition();
+
+                Location location = new Location("Your Destination");
+                location.setLatitude(latLng.latitude);
+                location.setLongitude(latLng.longitude);
+
+                dest_lat = latLng.latitude;
+                dest_lng = latLng.longitude;
+
+                mMap.clear();
+                reSetHomeMarker();
+
                 setMarker(location);
             }
         });
@@ -291,16 +324,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (addresses != null && addresses.size() > 0) {
                 Log.i(TAG,"onLocationResult: " + addresses.get(0));
                 address = "";
+                if(addresses.get(0).getThoroughfare() != null)
+                    address += addresses.get(0).getThoroughfare() + " ";
+                if(addresses.get(0).getLocality() != null)
+                    address += addresses.get(0).getLocality() + " ";
                 if(addresses.get(0).getAdminArea() != null)
                     address += addresses.get(0).getAdminArea() + " ";
                 if(addresses.get(0).getCountryName() != null)
                     address += addresses.get(0).getCountryName() + " ";
-                if(addresses.get(0).getLocality() != null)
-                    address += addresses.get(0).getLocality() + " ";
                 if(addresses.get(0).getPostalCode() != null)
                     address += addresses.get(0).getPostalCode() + " ";
-                if(addresses.get(0).getThoroughfare() != null)
-                    address += addresses.get(0).getThoroughfare() + " ";
+
 
                 Log.i(TAG,"getAddress: " + address);
             }
@@ -319,6 +353,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         GetDirectionData getDirectionData = new GetDirectionData(getApplicationContext(), address);
         getDirectionData.execute(dataTransfer);
+
     }
 
     private void setMarker(Location location) {
