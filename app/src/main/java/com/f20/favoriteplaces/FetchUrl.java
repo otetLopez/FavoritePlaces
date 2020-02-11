@@ -32,7 +32,7 @@ public class FetchUrl {
             Log.i("FetchUrl", "readUrl: " + "while");
             while((line = br.readLine()) != null) {
                 sb.append(line);
-                Log.i("FetchUrl", "readUrl: " + line);
+                //Log.i("FetchUrl", "readUrl: " + line);
             }
 
             data = sb.toString();

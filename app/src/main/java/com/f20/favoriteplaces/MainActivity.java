@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadPlaces() {
+        placeList.clear();
         Cursor cursor = mDatabase.getAllPlaces();
         if (cursor.moveToFirst()) {
             do {

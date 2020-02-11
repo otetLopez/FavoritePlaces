@@ -1,10 +1,12 @@
 package com.f20.favoriteplaces;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.List;
@@ -35,10 +37,18 @@ public class PlaceAdapter extends ArrayAdapter {
 
         TextView tv_addr = v.findViewById(R.id.tv_addr);
         TextView tv_date = v.findViewById(R.id.tv_date);
+        LinearLayout cell = v.findViewById(R.id.cell_place);
 
         final Place place = placeList.get(position);
         tv_addr.setText(place.getAddr());
         tv_date.setText("Date created: " + place.getDate());
+
+        if(place.isVisited())
+            cell.setBackgroundColor(Color.LTGRAY);
+        else
+            cell.setBackgroundColor(Color.WHITE);
+
+
 
         return v;
     }

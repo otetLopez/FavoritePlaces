@@ -40,8 +40,10 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 
 import java.io.IOException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -57,7 +59,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FusedLocationProviderClient fusedLocationProviderClient;
     LocationCallback locationCallback;
     LocationRequest locationRequest;
-
 
     double latitude;
     double longitude;
@@ -139,6 +140,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setHomeMarker();
     }
 
+    public static void reSetHomeMarker() {
+        //LatLng userLocation = new LatLng(latitude, longitude);
+        //setHomeMarker(userLocation);
+    }
+
+    private void setHomeMarker(LatLng userLocation) {
+        String address = getAddress(userLocation);
+        mMap.addMarker(new MarkerOptions().position(userLocation)
+                .title(address)
+                .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.user_position)));
+
+    }
+
     private void setHomeMarker() {
         locationCallback = new LocationCallback() {
             @Override
@@ -148,8 +162,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     latitude = userLocation.latitude;
                     longitude = userLocation.longitude;
-                    String address = getAddress(userLocation);
-
                     CameraPosition cameraPosition = CameraPosition.builder()
                             .target(userLocation)
                             .zoom(15)
@@ -158,10 +170,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             .build();
 
                     mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
                     mMap.clear();
-                    mMap.addMarker(new MarkerOptions().position(userLocation)
-                            .title(address)
-                            .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.user_position)));
+                    setHomeMarker(userLocation);
+
                 }
             }
         };
@@ -239,7 +251,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.btn_clear:
                 mMap.clear();
                 directionRequested = false;
-                setHomeMarker();
+                LatLng userLocation = new LatLng(this.latitude, this.longitude);
+                setHomeMarker(userLocation);
                 break;
             default:
                 break;
@@ -297,16 +310,29 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
+    private void setDirection(String address) {
+        String url = getDirectionUrl();
+        Object[] dataTransfer = new Object[3];
+        dataTransfer[0] = mMap;
+        dataTransfer[1] = url;
+        dataTransfer[2] = new LatLng(dest_lat, dest_lng);
+
+        GetDirectionData getDirectionData = new GetDirectionData(getApplicationContext(), address);
+        getDirectionData.execute(dataTransfer);
+    }
+
     private void setMarker(Location location) {
         LatLng userLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-        MarkerOptions options = new MarkerOptions().position(userLatLng)
-                .title("Your Destination")
-                .snippet(getAddress(userLatLng))
-                .draggable(true)
-                .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.destination));
-
-        mMap.addMarker(options);
+//        MarkerOptions options = new MarkerOptions().position(userLatLng)
+//                .title(getAddress(userLatLng))
+//                .snippet(getAddress(userLatLng))
+//                .draggable(true)
+//                .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.destination));
+//
+//        mMap.addMarker(options);
         directionRequested = true;
+
+        setDirection(getAddress(userLatLng));
     }
 
     @Override
@@ -317,6 +343,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
             }
         }
+    }
+
+    private String getDirectionUrl() {
+        StringBuilder directionUrl = new StringBuilder("https://maps.googleapis.com/maps/api/directions/json?");
+        directionUrl.append("origin="+latitude+","+longitude);
+        directionUrl.append("&destination="+dest_lat+","+dest_lng);
+        directionUrl.append("&key="+ getString(R.string.api_key));
+        Log.i(TAG, "getUrl direction" + directionUrl.toString());
+        return directionUrl.toString();
     }
 
     private String getUrl(double latitude, double longitude, String nearbyPlace) {

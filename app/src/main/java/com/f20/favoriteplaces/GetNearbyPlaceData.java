@@ -46,7 +46,7 @@ public class GetNearbyPlaceData extends AsyncTask<Object, String, String> {
         List<HashMap<String, String>> nearbyPlaceList = null;
         DataParser dataParser = new DataParser();
         nearbyPlaceList = dataParser.parse(s);
-        googleMap.clear();
+        //googleMap.clear();
         showNearbyPlaces(nearbyPlaceList);
     }
 
