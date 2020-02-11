@@ -21,6 +21,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
 import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -41,6 +42,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -211,7 +214,36 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void btnClick(View v) {
+        switch (v.getId()) {
+            case R.id.btn_save_location:
+                if (directionRequested) {
+                    Calendar calendar = Calendar.getInstance();
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+                    String dateCreated = sdf.format(calendar.getTime());
+                    String addr = getAddress(new LatLng(dest_lat, dest_lng));
+                    addr = addr.isEmpty() ? dateCreated : addr;
+                    CheckBox cb = findViewById(R.id.cb_visited);
+                    boolean checked = cb.isChecked() ? true : false;
 
+                    Place place = new Place(addr, dateCreated, checked, dest_lat, dest_lng);
+                    DatabaseHelper mDatabase = new DatabaseHelper(this);
+                    if(mDatabase.addPlace(place))
+                        Toast.makeText(this, "Destination saved", Toast.LENGTH_SHORT).show();
+                    else
+                        Toast.makeText(this, "Destination not saved", Toast.LENGTH_SHORT).show();
+
+                } else {
+                    Toast.makeText(this, "Cannot save.  No destination set!",Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case R.id.btn_clear:
+                mMap.clear();
+                directionRequested = false;
+                setHomeMarker();
+                break;
+            default:
+                break;
+        }
     }
 
     private void showNearby(String type) {
@@ -223,8 +255,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         getNearbyPlaceData.execute(dataTransfer);
         Toast.makeText(this, "Showing nearby " + type, Toast.LENGTH_SHORT).show();
 
+        setHomeMarker();
+        if (directionRequested) {
+            Location location = destinationMarker();
+            setMarker(location);
+        }
     }
 
+    private Location destinationMarker() {
+        Location location = new Location("Your Destination");
+        location.setLatitude(dest_lat);
+        location.setLongitude(dest_lng);
+
+        return location;
+    }
 
     private String getAddress(LatLng location) {
         String address = "";
@@ -262,6 +306,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.destination));
 
         mMap.addMarker(options);
+        directionRequested = true;
     }
 
     @Override

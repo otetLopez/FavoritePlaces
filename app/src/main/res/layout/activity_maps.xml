@@ -59,13 +59,32 @@
         </LinearLayout>
     </RelativeLayout>
 
-    <Button
-        android:id="@+id/btn_save_location"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#1ABC9C"
-        android:textColor="#FFFF"
-        android:text="Save Destination"
-        android:onClick="btnClick"/>
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_save_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#1ABC9C"
+            android:textColor="#FFFF"
+            android:text="Save Destination"
+            android:layout_marginRight="0.5dp"
+            android:layout_weight="1"
+            android:onClick="btnClick"/>
+
+        <Button
+            android:id="@+id/btn_clear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#1ABC9C"
+            android:textColor="#FFFF"
+            android:text="Clear"
+            android:onClick="btnClick"/>
+
+    </LinearLayout>
+
 
 </LinearLayout>
