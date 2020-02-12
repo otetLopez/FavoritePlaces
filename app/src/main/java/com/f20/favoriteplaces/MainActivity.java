@@ -3,11 +3,15 @@ package com.f20.favoriteplaces;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelStore;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -26,8 +30,10 @@ public class MainActivity extends AppCompatActivity {
     ListView listView;
 
     private RecyclerView recyclerView;
-    private RecyclerView.Adapter mAdapter;
+    private PlaceAdapterRecycler mAdapter;
     private RecyclerView.LayoutManager layoutManager;
+
+    private boolean updatingList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,21 +44,16 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = (RecyclerView) findViewById(R.id.lv_places);
         mDatabase = new DatabaseHelper(this);
         placeList = new ArrayList<>();
+        updatingList = false;
 
 
         loadPlaces();
 
         recyclerView.setHasFixedSize(true);
-
-        // use a linear layout manager
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
 
-        // specify an adapter (see also next example)
-
-
-
-
+        enableSwipeToDeleteAndUndo();
 
         findViewById(R.id.btn_add_place).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,8 +64,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-
-
 
     @Override
     protected void onRestart() {
@@ -97,5 +96,44 @@ public class MainActivity extends AppCompatActivity {
             recyclerView.setAdapter(mAdapter);
 
         }
+    }
+
+    private void enableSwipeToDeleteAndUndo() {
+        SwipeToDeleteCallback swipeToDeleteCallback = new SwipeToDeleteCallback(this) {
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
+                final int position = viewHolder.getAdapterPosition();
+                final Place place = mAdapter.getData().get(position);
+
+                deletePlace(place, position);
+            }
+        };
+        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeToDeleteCallback);
+        itemTouchhelper.attachToRecyclerView(recyclerView);
+    }
+
+    private void deletePlace(final Place place, final int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Are you sure?");
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if(mDatabase.deletePlace(place.getId())) {
+                    mAdapter.removeItem(position);
+                }
+                loadPlaces();
+            }
+        });
+
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                mAdapter.removeItem(position);
+                mAdapter.restoreItem(place, position);
+            }
+        });
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 }

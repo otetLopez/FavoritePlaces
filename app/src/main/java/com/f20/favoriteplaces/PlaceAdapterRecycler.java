@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -60,8 +61,17 @@ public class PlaceAdapterRecycler extends RecyclerView.Adapter<PlaceAdapterRecyc
         return mDataset.size();
     }
 
-    //@Override
-    //public int getSwipeLayoutResourceId(int position) {
-//        return R.id.swipe;
-//    }
+    public void removeItem(int position) {
+        mDataset.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    public void restoreItem(Place place, int position) {
+        mDataset.add(position, place);
+        notifyItemInserted(position);
+    }
+
+    public List<Place> getData() {
+        return mDataset;
+    }
 }
