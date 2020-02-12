@@ -3,6 +3,8 @@ package com.f20.favoriteplaces;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelStore;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -23,16 +25,34 @@ public class MainActivity extends AppCompatActivity {
     List<Place> placeList;
     ListView listView;
 
+    private RecyclerView recyclerView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager layoutManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        listView = findViewById(R.id.lv_places);
+        //listView = findViewById(R.id.lv_places);
+        recyclerView = (RecyclerView) findViewById(R.id.lv_places);
         mDatabase = new DatabaseHelper(this);
         placeList = new ArrayList<>();
 
+
         loadPlaces();
+
+        recyclerView.setHasFixedSize(true);
+
+        // use a linear layout manager
+        layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+
+        // specify an adapter (see also next example)
+
+
+
+
 
         findViewById(R.id.btn_add_place).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -70,8 +90,11 @@ public class MainActivity extends AppCompatActivity {
 
             // show items in a listView
             // we use a custom adapter to show employees
-            PlaceAdapter placeAdapter = new PlaceAdapter(this, R.id.lv_places, placeList, mDatabase);
-            listView.setAdapter(placeAdapter);
+            //PlaceAdapter placeAdapter = new PlaceAdapter(this, R.id.lv_places, placeList, mDatabase);
+            //listView.setAdapter(placeAdapter);
+
+            mAdapter = new PlaceAdapterRecycler(this, placeList);
+            recyclerView.setAdapter(mAdapter);
 
         }
     }
