@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -65,14 +66,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     double longitude;
     double dest_lat, dest_lng;
     public boolean directionRequested;
+    private boolean userLocationChanged;
+
+    Place place;
+    int position;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        Intent intent = getIntent();
+        place = (Place) intent.getExtras().get("modPlace");
+        position = (int) intent.getExtras().get("position");
+
         initMap();
         directionRequested = false;
+        userLocationChanged = false;
         getUserLocation();
         if(!checkPermission())
             requestPermission();
@@ -126,6 +136,35 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+    private void configureView() {
+        if(this.position >= 0) {
+            Log.i(TAG, "configureView: " +place.getId()+ ": "+ place.getAddr() + "in " + String.valueOf(place.getLat()) + "," + String.valueOf(place.getLng()));
+            //Set the visited
+            if (place.isVisited()) {
+                CheckBox cb = findViewById(R.id.cb_visited);
+                cb.setChecked(true);
+            }
+
+            //Set previous user location
+            if (latitude != place.getUser_lat() && longitude != place.getUser_lng()) {
+                userLocationChanged = true;
+                LatLng oldUserLocation = new LatLng(place.getUser_lat(), place.getUser_lng());
+                setPreviousHomeMarker(oldUserLocation);
+            }
+
+            // Set Marker for existing destination
+            // Set the route and get direction
+            dest_lat = place.getLat();
+            dest_lng = place.getLng();
+            directionRequested = true;
+
+            Location location = new Location("Saved Destination");
+            location.setLatitude(dest_lat);
+            location.setLongitude(dest_lng);
+            setMarker(location);
+        }
+    }
+
     private void initMap() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -146,6 +185,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setHomeMarker(userLocation);
     }
 
+    private void setPreviousHomeMarker(LatLng userLocation) {
+        Log.i(TAG, "setPreviousHomeMarker: previous user location");
+        String address = getAddress(userLocation);
+        mMap.addMarker(new MarkerOptions().position(userLocation)
+                .title(address)
+                .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.user_prev)));
+
+    }
+
     private void setHomeMarker(LatLng userLocation) {
         String address = getAddress(userLocation);
         mMap.addMarker(new MarkerOptions().position(userLocation)
@@ -155,14 +203,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void setHomeMarker() {
+        Log.i(TAG, "setHomeMarker: current user location");
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 for (Location location: locationResult.getLocations()) {
                     LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
+
                     latitude = userLocation.latitude;
                     longitude = userLocation.longitude;
+                    Log.i(TAG, "latlng set to " + String.valueOf(latitude) + "," + String.valueOf(longitude));
                     CameraPosition cameraPosition = CameraPosition.builder()
                             .target(userLocation)
                             .zoom(15)
@@ -210,7 +261,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        //mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+
+        configureView();
+
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
@@ -252,7 +305,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 mMap.clear();
                 reSetHomeMarker();
-
                 setMarker(location);
             }
         });
@@ -270,13 +322,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     CheckBox cb = findViewById(R.id.cb_visited);
                     boolean checked = cb.isChecked() ? true : false;
 
-                    Place place = new Place(addr, dateCreated, checked, dest_lat, dest_lng);
+                    //Place place = new Place(addr, dateCreated, checked, dest_lat, dest_lng);
+                    place.setAddr(addr);
+                    place.setDate(dateCreated);
+                    place.setVisited(checked);
+                    place.setUser_lat(latitude);
+                    place.setUser_lng(longitude);
+                    place.setLat(dest_lat);
+                    place.setLng(dest_lng);
                     DatabaseHelper mDatabase = new DatabaseHelper(this);
-                    if(mDatabase.addPlace(place))
-                        Toast.makeText(this, "Destination saved", Toast.LENGTH_SHORT).show();
-                    else
-                        Toast.makeText(this, "Destination not saved", Toast.LENGTH_SHORT).show();
-
+                    if(this.position >= 0) {
+                        if(mDatabase.updatePlace(place.getId(), place)) {
+                            Toast.makeText(this, "Changes saved", Toast.LENGTH_SHORT).show();
+                        } else
+                            Toast.makeText(this, "Changes not saved", Toast.LENGTH_SHORT).show();
+                    } else {
+                        if (mDatabase.addPlace(place))
+                            Toast.makeText(this, "Destination saved", Toast.LENGTH_SHORT).show();
+                        else
+                            Toast.makeText(this, "Destination not saved", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
                     Toast.makeText(this, "Cannot save.  No destination set!",Toast.LENGTH_SHORT).show();
                 }
@@ -286,6 +351,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 directionRequested = false;
                 LatLng userLocation = new LatLng(this.latitude, this.longitude);
                 setHomeMarker(userLocation);
+                configureView();
                 break;
             default:
                 break;
@@ -345,7 +411,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     private void setDirection(String address) {
-        String url = getDirectionUrl();
+        String url = userLocationChanged ? getSavedDirectionURL(new LatLng(place.getLat(), place.getLng())) : getDirectionUrl();
         Object[] dataTransfer = new Object[3];
         dataTransfer[0] = mMap;
         dataTransfer[1] = url;
@@ -358,15 +424,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void setMarker(Location location) {
         LatLng userLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-//        MarkerOptions options = new MarkerOptions().position(userLatLng)
-//                .title(getAddress(userLatLng))
-//                .snippet(getAddress(userLatLng))
-//                .draggable(true)
-//                .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.destination));
-//
-//        mMap.addMarker(options);
         directionRequested = true;
-
         setDirection(getAddress(userLatLng));
     }
 
@@ -378,6 +436,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
             }
         }
+    }
+
+    private String getSavedDirectionURL(LatLng destination) {
+        StringBuilder directionUrl = new StringBuilder("https://maps.googleapis.com/maps/api/directions/json?");
+        directionUrl.append("origin="+place.getUser_lat()+","+place.getUser_lng());
+        directionUrl.append("&destination="+destination.latitude+","+destination.longitude);
+        directionUrl.append("&key="+ getString(R.string.api_key));
+        Log.i(TAG, "getSavedDirectionURL: " + directionUrl.toString());
+        return directionUrl.toString();
     }
 
     private String getDirectionUrl() {
@@ -398,4 +465,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.i(TAG, "getUrl" + placeUrl.toString());
         return placeUrl.toString();
     }
+
+
+
 }

@@ -14,6 +14,7 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -59,10 +60,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+                Place place = new Place();
+                intent.putExtra("modPlace", place);
+                intent.putExtra("position", -1);
                 startActivity(intent);
             }
         });
-
     }
 
     @Override
@@ -81,8 +84,10 @@ public class MainActivity extends AppCompatActivity {
                         cursor.getString(1),    //addr
                         cursor.getString(2),    //date
                         cursor.getInt(3) > 0,   //visited
-                        cursor.getDouble(4),    //lat
-                        cursor.getDouble(5)    //lng
+                        cursor.getDouble(4),    //user lat
+                        cursor.getDouble(5),    // user lng
+                        cursor.getDouble(6),    //lat
+                        cursor.getDouble(7)    //lng
                 ));
             } while (cursor.moveToNext());
             cursor.close();
@@ -110,6 +115,16 @@ public class MainActivity extends AppCompatActivity {
         };
         ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeToDeleteCallback);
         itemTouchhelper.attachToRecyclerView(recyclerView);
+
+
+        AdapterView.OnItemClickListener itemClickListener = new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                String addr = placeList.get(i).getAddr();
+                Toast.makeText(MainActivity.this, addr, Toast.LENGTH_SHORT).show();
+            }
+        };
     }
 
     private void deletePlace(final Place place, final int position) {
@@ -136,4 +151,6 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
     }
+
 }
+

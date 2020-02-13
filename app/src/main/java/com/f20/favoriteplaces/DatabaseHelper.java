@@ -16,6 +16,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_NAME = "place";
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_ADDRESS = "address";
+    public static final String COLUMN_USR_LAT = "user_lat";
+    public static final String COLUMN_USR_LNG = "user_lng";
     public static final String COLUMN_LAT = "latitude";
     public static final String COLUMN_LNG = "longitude";
     public static final String COLUMN_CREATED = "date";
@@ -35,6 +37,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_ADDRESS + " varchar(200) NOT NULL, " +
                 COLUMN_CREATED + " varchar(200) NOT NULL, " +
                 COLUMN_VISITED + " boolean DEFAULT 0, " +
+                COLUMN_USR_LAT + " double NOT NULL, " +
+                COLUMN_USR_LNG + " double NOT NULL, " +
                 COLUMN_LAT + " double NOT NULL, " +
                 COLUMN_LNG + " double NOT NULL);";
         sqLiteDatabase.execSQL(sql);
@@ -61,6 +65,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cv.put(COLUMN_ADDRESS, place.getAddr());
         cv.put(COLUMN_CREATED, place.getDate());
         cv.put(COLUMN_VISITED, place.isVisited());
+        cv.put(COLUMN_USR_LAT, String.valueOf(place.getUser_lat()));
+        cv.put(COLUMN_USR_LNG, String.valueOf(place.getUser_lng()));
         cv.put(COLUMN_LAT,String.valueOf(place.getLat()));
         cv.put(COLUMN_LNG,String.valueOf(place.getLng()));
 
@@ -82,6 +88,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cv.put(COLUMN_ADDRESS, place.getAddr());
         cv.put(COLUMN_CREATED, place.getDate());
         cv.put(COLUMN_VISITED, place.isVisited());
+        cv.put(COLUMN_USR_LAT, String.valueOf(place.getUser_lat()));
+        cv.put(COLUMN_USR_LNG, String.valueOf(place.getUser_lng()));
         cv.put(COLUMN_LAT,String.valueOf(place.getLat()));
         cv.put(COLUMN_LNG,String.valueOf(place.getLng()));
 

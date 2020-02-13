@@ -1,13 +1,16 @@
 package com.f20.favoriteplaces;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,14 +40,25 @@ public class PlaceAdapterRecycler extends RecyclerView.Adapter<PlaceAdapterRecyc
 
     @Override
     public PlaceAdapterRecycler.MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_places, parent, false);
+        /*view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+               // int itemPosition = this.getChildLayoutPosition(view);
+                //Place place = mDataset.get(itemPosition);
+                Intent intent = new Intent(context, MapsActivity.class);
+                //context.startActivity(intent);
+                String addr = view.findViewById(R.id.tv_addr).toString();
+                //Toast.makeText(context, addr, Toast.LENGTH_SHORT).show();
+            }
+        }); */
+
         return new MyViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
-        Place place = mDataset.get(position);
+    public void onBindViewHolder(MyViewHolder holder, final int position) {
+        final Place place = mDataset.get(position);
 
         holder.tvAddress.setText(place.getAddr());
         holder.tvDate.setText("Date created: " + place.getDate());
@@ -53,6 +67,17 @@ public class PlaceAdapterRecycler extends RecyclerView.Adapter<PlaceAdapterRecyc
             holder.cell.setBackgroundColor(Color.LTGRAY);
         else
             holder.cell.setBackgroundColor(Color.parseColor("#FAFAFA"));
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(context, String.format("Address: %s", place.getAddr()), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(context, MapsActivity.class);
+                intent.putExtra("modPlace", place);
+                intent.putExtra("position", position);
+                context.startActivity(intent);
+            }
+        });
 
     }
 
@@ -75,3 +100,5 @@ public class PlaceAdapterRecycler extends RecyclerView.Adapter<PlaceAdapterRecyc
         return mDataset;
     }
 }
+
+
