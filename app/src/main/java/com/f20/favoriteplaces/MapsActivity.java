@@ -225,6 +225,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     mMap.clear();
                     setHomeMarker(userLocation);
+                    configureView();
 
                 }
             }
@@ -262,7 +263,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        configureView();
+        //configureView();
 
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
