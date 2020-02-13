@@ -29,7 +29,6 @@ public class MainActivity extends AppCompatActivity {
 
     DatabaseHelper mDatabase;
     List<Place> placeList;
-    ListView listView;
 
     private RecyclerView recyclerView;
     private PlaceAdapterRecycler mAdapter;
@@ -43,18 +42,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //listView = findViewById(R.id.lv_places);
 
         mDatabase = new DatabaseHelper(this);
         placeList = new ArrayList<>();
         updatingList = false;
 
-
         setupRecyclerView();
         loadPlaces();
-
-
-        //enableSwipeToDeleteAndUndo();
 
         findViewById(R.id.btn_add_place).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -92,11 +86,6 @@ public class MainActivity extends AppCompatActivity {
             } while (cursor.moveToNext());
             cursor.close();
 
-            // show items in a listView
-            // we use a custom adapter to show employees
-            //PlaceAdapter placeAdapter = new PlaceAdapter(this, R.id.lv_places, placeList, mDatabase);
-            //listView.setAdapter(placeAdapter);
-
             mAdapter = new PlaceAdapterRecycler(this, placeList);
             recyclerView.setAdapter(mAdapter);
 
@@ -133,42 +122,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-
-
-  /*  private void enableSwipeToDeleteAndUndo() {
-//        SwipeToDeleteCallback swipeToDeleteCallback = new SwipeToDeleteCallback(this) {
-//            @Override
-//            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-//                final int position = viewHolder.getAdapterPosition();
-//                final Place place = mAdapter.getData().get(position);
-//
-//                deletePlace(place, position);
-//            }
-//        };
-        //ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeToDeleteCallback);
-        //itemTouchhelper.attachToRecyclerView(recyclerView);
-
-        SwipeController swipeController = new SwipeController();
-//        recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
-//            @Override
-//            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
-//                swipeController.onDraw(c);
-//            }
-//        });
-        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
-        itemTouchhelper.attachToRecyclerView(recyclerView);
-
-
-//        AdapterView.OnItemClickListener itemClickListener = new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-//
-//                String addr = placeList.get(i).getAddr();
-//                Toast.makeText(MainActivity.this, addr, Toast.LENGTH_SHORT).show();
-//            }
-//        };
-    } */
 
     private void deletePlace(final int position) {
         final Place place = mAdapter.getData().get(position);
