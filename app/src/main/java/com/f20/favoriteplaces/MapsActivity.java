@@ -52,6 +52,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -70,6 +71,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean directionRequested;
     private boolean userLocationChanged;
     private boolean newDirectionSet;
+    private boolean originChanged;
+    private String nearbyType = "";
 
     Place place;
     int position;
@@ -87,6 +90,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         directionRequested = false;
         userLocationChanged = false;
         newDirectionSet = false;
+        originChanged = false;
+        nearbyType = "";
         getUserLocation();
         if(!checkPermission())
             requestPermission();
@@ -296,6 +301,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     mMap.clear();
                     reSetHomeMarker();
                     setMarker(location);
+                    if(!nearbyType.isEmpty())
+                        showNearby(nearbyType);
                 }
             }
         });
@@ -355,8 +362,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 newDirectionSet = true;
-                latitude = place.getLat();
-                longitude = place.getLng();
+                originChanged = true;
                 setMarker(location);
 
             }
@@ -405,6 +411,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.btn_clear:
                 mMap.clear();
                 directionRequested = false;
+                nearbyType = "";
                 LatLng userLocation = new LatLng(this.latitude, this.longitude);
                 setHomeMarker(userLocation);
                 configureView();
@@ -415,6 +422,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void showNearby(String type) {
+        nearbyType = type;
         String url = getUrl(latitude, longitude, type);
         Object[] dataTransfer = new Object[2];
         dataTransfer[0] = mMap;
@@ -473,10 +481,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         double dLng = 0;
 
         if(newDirectionSet) {
-            originLat = latitude;
-            originLng = longitude;
+            originLat = originChanged ? place.getLat() : latitude;
+            originLng = originChanged ? place.getLng() : longitude;
             dLat = dest_lat;
             dLng = dest_lng;
+
+            originChanged = false;
         } else {
             originLat = latitude;//place.getUser_lat();
             originLng = longitude;//place.getUser_lng();
@@ -484,15 +494,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             dLng = place.getLng();
         }
 
-        String url = userLocationChanged ? getSavedDirectionURL(new LatLng(originLat, originLng),
+        String url = newDirectionSet ? getSavedDirectionURL(new LatLng(originLat, originLng),
                 new LatLng(dLat, dLng)) : getDirectionUrl();
         Object[] dataTransfer = new Object[3];
         dataTransfer[0] = mMap;
         dataTransfer[1] = url;
         dataTransfer[2] = new LatLng(dest_lat, dest_lng);
 
-        GetDirectionData getDirectionData = new GetDirectionData(getApplicationContext(), address);
-        getDirectionData.execute(dataTransfer);
+        if(newDirectionSet) {
+            GetDirectionData getDirectionData = new GetDirectionData(getApplicationContext(), address, Constants.Colors[Utils.randomInt(6)]);
+            getDirectionData.execute(dataTransfer);
+        } else {
+            GetDirectionData getDirectionData = new GetDirectionData(getApplicationContext(), address);
+            getDirectionData.execute(dataTransfer);
+        }
+
 
     }
 
@@ -542,4 +558,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
+}
+
+class Utils {
+
+    private static final Random RANDOM = new Random();
+
+    // DO NOT USE THIS METHOD INSIDE YOUR CODE
+    public static void setSeed(long seed) {
+        RANDOM.setSeed(seed);
+    }
+
+    // generate a whole number between 0 and max (max not included)
+    public static int randomInt(int max) {
+        return RANDOM.nextInt(max);
+    }
 }

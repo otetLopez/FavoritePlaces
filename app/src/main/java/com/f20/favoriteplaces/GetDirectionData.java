@@ -43,9 +43,17 @@ public class GetDirectionData extends AsyncTask<Object, String, String> {
     Polyline polyline;
     Context context;
 
+    int polycolor = Color.RED;
+
     GetDirectionData(Context context, String address) {
         this.context = context;
         this.address = address;
+    }
+
+    GetDirectionData(Context context, String address, int polycolor) {
+        this.context = context;
+        this.address = address;
+        this.polycolor = polycolor;
     }
 
     @Override
@@ -98,7 +106,7 @@ public class GetDirectionData extends AsyncTask<Object, String, String> {
         int count = directionsList.length;
         for (int i =0; i<count; ++i) {
             PolylineOptions options = new PolylineOptions()
-                    .color(Color.RED)
+                    .color(polycolor)
                     .width(10)
                     .addAll(PolyUtil.decode(directionsList[i]));
             this.polyline = mMap.addPolyline(options);
