@@ -150,11 +150,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
             //Set previous user location
-            if (latitude != place.getUser_lat() && longitude != place.getUser_lng()) {
+            /* if (latitude != place.getUser_lat() && longitude != place.getUser_lng()) {
                 userLocationChanged = true;
                 LatLng oldUserLocation = new LatLng(place.getUser_lat(), place.getUser_lng());
                 setPreviousHomeMarker(oldUserLocation);
-            }
+            } */
 
             // Set Marker for existing destination
             // Set the route and get direction
@@ -166,6 +166,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             location.setLatitude(dest_lat);
             location.setLongitude(dest_lng);
             setMarker(location);
+
+            //focus camera on destination
+            CameraPosition cameraPosition = CameraPosition.builder()
+                    .target(new LatLng(dest_lat, dest_lng))
+                    .zoom(13)
+                    .bearing(0)
+                    .tilt(45)
+                    .build();
+
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
     }
 
@@ -218,15 +228,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     latitude = userLocation.latitude;
                     longitude = userLocation.longitude;
                     Log.i(TAG, "latlng set to " + String.valueOf(latitude) + "," + String.valueOf(longitude));
-                    CameraPosition cameraPosition = CameraPosition.builder()
-                            .target(userLocation)
-                            .zoom(15)
-                            .bearing(0)
-                            .tilt(45)
-                            .build();
+                    if(position < 0){
+                        CameraPosition cameraPosition = CameraPosition.builder()
+                                .target(userLocation)
+                                .zoom(15)
+                                .bearing(0)
+                                .tilt(45)
+                                .build();
 
-                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
+                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                    }
                     mMap.clear();
                     setHomeMarker(userLocation);
                     configureView();
@@ -279,7 +290,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 dest_lat = latLng.latitude;
                 dest_lng = latLng.longitude;
 
-                if(position >= 0 && place.getUser_lat() != latitude && place.getUser_lng() != longitude) {
+                if(position >= 0) {
                     alertUserForNewDirection(location);
                 } else {
                     mMap.clear();
@@ -309,8 +320,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 location.setLatitude(latLng.latitude);
                 location.setLongitude(latLng.longitude);
 
+
                 dest_lat = latLng.latitude;
                 dest_lng = latLng.longitude;
+                //newDirectionSet = true;
 
                 mMap.clear();
                 reSetHomeMarker();
@@ -342,8 +355,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 newDirectionSet = true;
-                latitude = place.getUser_lat();
-                longitude = place.getUser_lng();
+                latitude = place.getLat();
+                longitude = place.getLng();
                 setMarker(location);
 
             }
@@ -465,8 +478,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             dLat = dest_lat;
             dLng = dest_lng;
         } else {
-            originLat = place.getUser_lat();
-            originLng = place.getUser_lng();
+            originLat = latitude;//place.getUser_lat();
+            originLng = longitude;//place.getUser_lng();
             dLat = place.getLat();
             dLng = place.getLng();
         }

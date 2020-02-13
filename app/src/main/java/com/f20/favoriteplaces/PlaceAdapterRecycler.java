@@ -68,16 +68,16 @@ public class PlaceAdapterRecycler extends RecyclerView.Adapter<PlaceAdapterRecyc
         else
             holder.cell.setBackgroundColor(Color.parseColor("#FAFAFA"));
 
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(context, String.format("Address: %s", place.getAddr()), Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(context, MapsActivity.class);
-                intent.putExtra("modPlace", place);
-                intent.putExtra("position", position);
-                context.startActivity(intent);
-            }
-        });
+//        holder.itemView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Toast.makeText(context, String.format("Address: %s", place.getAddr()), Toast.LENGTH_SHORT).show();
+//                Intent intent = new Intent(context, MapsActivity.class);
+//                intent.putExtra("modPlace", place);
+//                intent.putExtra("position", position);
+//                context.startActivity(intent);
+//            }
+//        });
 
     }
 

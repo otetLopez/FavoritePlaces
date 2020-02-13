@@ -11,6 +11,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private PlaceAdapterRecycler mAdapter;
     private RecyclerView.LayoutManager layoutManager;
+    private SwipeController swipeController;
 
     private boolean updatingList;
 
@@ -42,19 +44,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //listView = findViewById(R.id.lv_places);
-        recyclerView = (RecyclerView) findViewById(R.id.lv_places);
+
         mDatabase = new DatabaseHelper(this);
         placeList = new ArrayList<>();
         updatingList = false;
 
 
+        setupRecyclerView();
         loadPlaces();
 
-        recyclerView.setHasFixedSize(true);
-        layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
 
-        enableSwipeToDeleteAndUndo();
+        //enableSwipeToDeleteAndUndo();
 
         findViewById(R.id.btn_add_place).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,31 +103,75 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void enableSwipeToDeleteAndUndo() {
-        SwipeToDeleteCallback swipeToDeleteCallback = new SwipeToDeleteCallback(this) {
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-                final int position = viewHolder.getAdapterPosition();
-                final Place place = mAdapter.getData().get(position);
+    private void setupRecyclerView() {
+        recyclerView = (RecyclerView) findViewById(R.id.lv_places);
+        recyclerView.setHasFixedSize(true);
+        layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
 
-                deletePlace(place, position);
+         swipeController = new SwipeController(new SwipeControllerActions() {
+            @Override
+            public void onRightClicked(int position) {
+                deletePlace(position);
+                mAdapter.notifyItemRemoved(position);
+                mAdapter.notifyItemRangeChanged(position, mAdapter.getItemCount());
             }
-        };
-        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeToDeleteCallback);
+
+             @Override
+             public void onLeftClicked(int position) {
+                 editPlace(position);
+             }
+         });
+
+        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
+        itemTouchhelper.attachToRecyclerView(recyclerView);
+
+        recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
+                swipeController.onDraw(c);
+            }
+        });
+    }
+
+
+
+  /*  private void enableSwipeToDeleteAndUndo() {
+//        SwipeToDeleteCallback swipeToDeleteCallback = new SwipeToDeleteCallback(this) {
+//            @Override
+//            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
+//                final int position = viewHolder.getAdapterPosition();
+//                final Place place = mAdapter.getData().get(position);
+//
+//                deletePlace(place, position);
+//            }
+//        };
+        //ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeToDeleteCallback);
+        //itemTouchhelper.attachToRecyclerView(recyclerView);
+
+        SwipeController swipeController = new SwipeController();
+//        recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+//            @Override
+//            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
+//                swipeController.onDraw(c);
+//            }
+//        });
+        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
         itemTouchhelper.attachToRecyclerView(recyclerView);
 
 
-        AdapterView.OnItemClickListener itemClickListener = new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+//        AdapterView.OnItemClickListener itemClickListener = new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+//
+//                String addr = placeList.get(i).getAddr();
+//                Toast.makeText(MainActivity.this, addr, Toast.LENGTH_SHORT).show();
+//            }
+//        };
+    } */
 
-                String addr = placeList.get(i).getAddr();
-                Toast.makeText(MainActivity.this, addr, Toast.LENGTH_SHORT).show();
-            }
-        };
-    }
-
-    private void deletePlace(final Place place, final int position) {
+    private void deletePlace(final int position) {
+        final Place place = mAdapter.getData().get(position);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Are you sure?");
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -143,13 +187,22 @@ public class MainActivity extends AppCompatActivity {
         builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                mAdapter.removeItem(position);
-                mAdapter.restoreItem(place, position);
+//                mAdapter.removeItem(position);
+//                mAdapter.restoreItem(place, position);
             }
         });
 
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
+    }
+
+    private void editPlace(final int position) {
+        final Place place = mAdapter.getData().get(position);
+        Toast.makeText(MainActivity.this, String.format("Address: %s", place.getAddr()), Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+        intent.putExtra("modPlace", place);
+        intent.putExtra("position", position);
+        startActivity(intent);
     }
 
 }
