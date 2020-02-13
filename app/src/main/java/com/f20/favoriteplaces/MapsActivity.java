@@ -8,7 +8,9 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -67,6 +69,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     double dest_lat, dest_lng;
     public boolean directionRequested;
     private boolean userLocationChanged;
+    private boolean newDirectionSet;
 
     Place place;
     int position;
@@ -83,6 +86,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         initMap();
         directionRequested = false;
         userLocationChanged = false;
+        newDirectionSet = false;
         getUserLocation();
         if(!checkPermission())
             requestPermission();
@@ -275,9 +279,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 dest_lat = latLng.latitude;
                 dest_lng = latLng.longitude;
 
-                mMap.clear();
-                reSetHomeMarker();
-                setMarker(location);
+                if(position >= 0 && place.getUser_lat() != latitude && place.getUser_lng() != longitude) {
+                    alertUserForNewDirection(location);
+                } else {
+                    mMap.clear();
+                    reSetHomeMarker();
+                    setMarker(location);
+                }
             }
         });
 
@@ -311,6 +319,40 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+    private void alertUserForNewDirection(final Location location) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Choose origin for new direction");
+
+        builder.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                newDirectionSet = false;
+            }
+        });
+
+        builder.setPositiveButton("User Location", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                newDirectionSet = true;
+                setMarker(location);
+            }
+        });
+
+        builder.setNegativeButton("Saved Destination", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                newDirectionSet = true;
+                latitude = place.getUser_lat();
+                longitude = place.getUser_lng();
+                setMarker(location);
+
+            }
+        });
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
     public void btnClick(View v) {
         switch (v.getId()) {
             case R.id.btn_save_location:
@@ -332,7 +374,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     place.setLat(dest_lat);
                     place.setLng(dest_lng);
                     DatabaseHelper mDatabase = new DatabaseHelper(this);
-                    if(this.position >= 0) {
+                    if(this.position >= 0 && newDirectionSet != true) {
                         if(mDatabase.updatePlace(place.getId(), place)) {
                             Toast.makeText(this, "Changes saved", Toast.LENGTH_SHORT).show();
                         } else
@@ -412,7 +454,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     private void setDirection(String address) {
-        String url = userLocationChanged ? getSavedDirectionURL(new LatLng(place.getLat(), place.getLng())) : getDirectionUrl();
+        double originLat = 0;
+        double originLng = 0;
+        double dLat = 0;
+        double dLng = 0;
+
+        if(newDirectionSet) {
+            originLat = latitude;
+            originLng = longitude;
+            dLat = dest_lat;
+            dLng = dest_lng;
+        } else {
+            originLat = place.getUser_lat();
+            originLng = place.getUser_lng();
+            dLat = place.getLat();
+            dLng = place.getLng();
+        }
+
+        String url = userLocationChanged ? getSavedDirectionURL(new LatLng(originLat, originLng),
+                new LatLng(dLat, dLng)) : getDirectionUrl();
         Object[] dataTransfer = new Object[3];
         dataTransfer[0] = mMap;
         dataTransfer[1] = url;
@@ -439,9 +499,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private String getSavedDirectionURL(LatLng destination) {
+    private String getSavedDirectionURL(LatLng origin, LatLng destination) {
         StringBuilder directionUrl = new StringBuilder("https://maps.googleapis.com/maps/api/directions/json?");
-        directionUrl.append("origin="+place.getUser_lat()+","+place.getUser_lng());
+        directionUrl.append("origin="+origin.latitude+","+origin.longitude);
         directionUrl.append("&destination="+destination.latitude+","+destination.longitude);
         directionUrl.append("&key="+ getString(R.string.api_key));
         Log.i(TAG, "getSavedDirectionURL: " + directionUrl.toString());
