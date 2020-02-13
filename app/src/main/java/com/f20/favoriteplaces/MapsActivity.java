@@ -73,6 +73,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean newDirectionSet;
     private boolean originChanged;
     private String nearbyType = "";
+    Spinner nearby;
 
     Place place;
     int position;
@@ -98,7 +99,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         else
             fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
 
-        final Spinner nearby = findViewById(R.id.s_nearby_type);
+        nearby = findViewById(R.id.s_nearby_type);
         nearby.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -414,6 +415,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 LatLng userLocation = new LatLng(this.latitude, this.longitude);
                 setHomeMarker(userLocation);
                 configureView();
+                nearby.setSelection(0);
                 break;
             default:
                 break;
