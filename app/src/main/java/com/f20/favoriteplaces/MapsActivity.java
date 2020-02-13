@@ -98,23 +98,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         else
             fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
 
-        final SearchView searchView = findViewById(R.id.sv_nearby_key);
-        searchView.clearFocus();
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        final Spinner nearby = findViewById(R.id.s_nearby_type);
+        nearby.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public boolean onQueryTextSubmit(String s) {
-                Log.i(TAG, "onCreate: " + "This is the nearby type inputted: " + s);
-                showNearby(s.replace(" ", "_"));
-                return false;
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                String type = nearby.getSelectedItem().toString().toLowerCase();
+                type = type.replace(" ", "_");
+                if(!(type.equals("check_nearby_places..."))) {
+                    showNearby(type);
+                } else
+                    nearbyType = "";
             }
 
             @Override
-            public boolean onQueryTextChange(String s) {
-                //Log.i(TAG, "onCreate: onQueryTextChange, " + s);
-                return false;
+            public void onNothingSelected(AdapterView<?> adapterView) {
             }
         });
-
 
         Spinner spinner = findViewById(R.id.spinner_map_type);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -427,7 +426,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Object[] dataTransfer = new Object[2];
         dataTransfer[0] = mMap;
         dataTransfer[1] = url;
-        GetNearbyPlaceData getNearbyPlaceData = new GetNearbyPlaceData(this);
+        GetNearbyPlaceData getNearbyPlaceData = new GetNearbyPlaceData(this, Constants.Hues[Utils.randomInt(6)]);
         getNearbyPlaceData.execute(dataTransfer);
         Toast.makeText(this, "Showing nearby " + type, Toast.LENGTH_SHORT).show();
 

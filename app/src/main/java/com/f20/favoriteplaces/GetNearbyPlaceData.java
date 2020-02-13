@@ -1,6 +1,7 @@
 package com.f20.favoriteplaces;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
@@ -19,9 +20,11 @@ public class GetNearbyPlaceData extends AsyncTask<Object, String, String> {
     String placeData;
     String url;
     Context context;
+    float markerColor = BitmapDescriptorFactory.HUE_AZURE;
 
-    public GetNearbyPlaceData(Context context) {
+    public GetNearbyPlaceData(Context context, float markerColor) {
         this.context = context;
+        this.markerColor = markerColor;
     }
 
     @Override
@@ -67,7 +70,7 @@ public class GetNearbyPlaceData extends AsyncTask<Object, String, String> {
             MarkerOptions markerOptions = new MarkerOptions()
                     .position(latLng)
                     .title(placeName + " : " + vicinity)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+                    .icon(BitmapDescriptorFactory.defaultMarker(markerColor));
             googleMap.addMarker(markerOptions);
 
 

@@ -10,4 +10,17 @@
         <item>Hybrid</item>
         <item>Terrain</item>
     </string-array>
+
+    <string-array name="nearby_type">
+        <item>Check nearby places...</item>
+        <item>Restaurant</item>
+        <item>Cafe</item>
+        <item>Museum</item>
+        <item>Gas Station</item>
+        <item>Supermarket</item>
+        <item>Tourist Attraction</item>
+        <item>Shopping Mall</item>
+        <item>Convenience Store</item>
+        <item>Night Club</item>
+    </string-array>
 </resources>
